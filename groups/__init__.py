@@ -1,1 +1,1 @@
-from .groups import Element, CyclicGroup # noqa F401
+from .groups import Element, CyclicGroup, GeneralLinearGroup # noqa F401

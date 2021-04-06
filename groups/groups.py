@@ -1,4 +1,5 @@
 from numbers import Integral
+import numpy as np
 
 
 class Element:
@@ -33,33 +34,57 @@ class Element:
             f"({repr(self.group), repr(self.value)})"
 
 
-class CyclicGroup:
-    """A cyclic group represented by integer addition modulo group order."""
+class Group:
+    def __init__(self, n):
+        self.n = n
 
-    def __init__(self, order):
-        self.order = order
+    def __call__(self, value):
+        """Create an element of this group."""
+        return Element(self, value)
+
+    def __repr__(self):
+        """Return the canonical string representation of the group."""
+        return f"{type(self).__name__}({self.n})"
+
+    def __str__(self):
+        """Represent the group as Gd."""
+        return f"{self.symbol}{self.n}"
+
+
+class CyclicGroup(Group):
+    """A cyclic group represented by integer addition modulo group n."""
+
+    symbol = "C"
 
     def _validate(self, value):
         """Ensure that value is a legitimate element value in this group."""
-        if not (isinstance(value, Integral) and 0 <= value < self.order):
+        if not (isinstance(value, Integral) and 0 <= value < self.n):
             raise ValueError("Element value must be an integer"
-                             f" in the range [0, {self.order}).")
+                             f" in the range [0, {self.n}).")
 
     def operation(self, a, b):
         """Perform the group operation on two values.
 
         The group operation is addition modulo n.
         """
-        return (a + b) % self.order
+        return (a + b) % self.n
 
-    def __call__(self, value):
-        """Create an element of this group."""
-        return Element(self, value)
 
-    def __str__(self):
-        """Represent the group as Gd."""
-        return f"C{self.order}"
+class GeneralLinearGroup(Group):
+    """The general linear group represented by n x n matrices."""
 
-    def __repr__(self):
-        """Return the canonical string representation of the group."""
-        return f"{type(self).__name__}({repr(self.order)})"
+    symbol = "G"
+
+    def _validate(self, value):
+        """Ensure that value is a legitimate element value in this group."""
+        if not (isinstance(value, np.ndarray),
+                value.shape == (self.n, self.n)):
+            raise ValueError("Element value must be an array "
+                             f"with shape ({self.n}, {self.n}).")
+
+    def operation(self, a, b):
+        """Perform the group operation on two values.
+
+        The group operation is matrix multiplication.
+        """
+        return a @ b
